@@ -87,7 +87,7 @@ export const ColorModel = types
       }
 
       const [, red = 0, green = 0, blue = 0] =
-        /^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/
+        /^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i
           .exec(hex)
           ?.map(hex => Number.parseInt(hex, 16)) ?? []
 

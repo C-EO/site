@@ -11,6 +11,7 @@ import { ButtonList } from "../../../common/layout/ButtonList"
 import { Stack } from "../../../common/layout/Stack"
 import { ModalManagerContext } from "../../../common/modal/ModalManagerContext"
 import { useRequiredContext } from "../../../common/state/useRequiredContext"
+import { joinWithAnd } from "../../../common/utilities/joinText"
 import { Markdown } from "../../markdown/Markdown"
 import type { MessageItemFormState } from "../../message/state/editorForm"
 import type { EmbedLike } from "../../message/state/models/EmbedModel"
@@ -18,6 +19,7 @@ import type { MessageLike } from "../../message/state/models/MessageModel"
 import type { DataEditorModalProps } from "../data/DataEditorModal"
 import { EditorManagerContext } from "../EditorManagerContext"
 import { EmbedEditor } from "./EmbedEditor"
+import { LoadClearMessageConfirmationModal } from "./LoadClearMessageConfirmationModal"
 import { PrimaryContentEditor } from "./PrimaryContentEditor"
 
 const DataEditorModal = dynamic<DataEditorModalProps>(async () =>
@@ -53,6 +55,20 @@ export function MessageEditor(props: MessageEditorProps) {
       render: () => <DataEditorModal message={message} />,
     })
 
+  const spawnLoadClearMessageModal = () =>
+    modalManager.spawn({
+      render: () => (
+        <LoadClearMessageConfirmationModal
+          editorManager={editorManager}
+          message={message}
+        />
+      ),
+    })
+
+  const emptyEmbedNumbers = message.embeds
+    .map((embed, index) => (!embed.displayName ? index + 1 : -1))
+    .filter(index => index !== -1)
+
   return useObserver(() => (
     <Stack gap={16}>
       <PrimaryContentEditor message={message} form={form} />
@@ -63,6 +79,19 @@ export function MessageEditor(props: MessageEditorProps) {
               error={
                 message.embedLength > 6000
                   ? "Embeds exceed 6000 character limit"
+                  : undefined
+              }
+            />
+          </EmbedValidationErrorContainer>
+          <EmbedValidationErrorContainer>
+            <InputError
+              error={
+                emptyEmbedNumbers.length === 1
+                  ? `Embed ${emptyEmbedNumbers[0]} is empty`
+                  : emptyEmbedNumbers.length > 1
+                  ? `Embeds ${joinWithAnd(
+                      emptyEmbedNumbers.map(String),
+                    )} are empty`
                   : undefined
               }
             />
@@ -94,12 +123,24 @@ export function MessageEditor(props: MessageEditorProps) {
         placeholder="https://discord.com/channels/..."
         error={form.field("reference").error}
         {...form.field("reference").inputProps}
-      />
+      >
+        <PrimaryButton
+          disabled={
+            !form.field("reference").isValid || form.field("reference").isEmpty
+          }
+          onClick={() => {
+            spawnLoadClearMessageModal()
+          }}
+        >
+          Load
+        </PrimaryButton>
+      </InputField>
       <Message
         content={
           "*When a message link is set, pressing submit or edit will edit the" +
           " message sent inside of Discord. To load a message sent in Discord, use" +
-          " the bot's 'restore' command.*"
+          " the 'Load' button or the bot's 'restore' command found in the apps" +
+          " section of the right click menu on any message.*"
         }
       />
       <ButtonList>

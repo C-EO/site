@@ -8,6 +8,7 @@ import {
   SubForm,
 } from "mstform"
 import { isUrl } from "../../../common/form/validators/isUrl"
+import { isUsername } from "../../../common/form/validators/isUsername"
 import { matchesRegex } from "../../../common/form/validators/matchesRegex"
 import { maxLength } from "../../../common/form/validators/maxLength"
 import { EditorManager, EditorManagerLike } from "../../editor/EditorManager"
@@ -21,7 +22,7 @@ export const editorForm = new Form(EditorManager, {
     }),
     username: new Field(converters.string, {
       controlled: controlled.object,
-      validators: [maxLength(80)],
+      validators: [isUsername(), maxLength(80)],
     }),
     avatar: new Field(converters.string, {
       controlled: controlled.object,
@@ -112,6 +113,16 @@ export const editorForm = new Form(EditorManager, {
         images: new Group({ include: ["gallery", "thumbnail"] }),
       },
     ),
+    thread_name: new Field(converters.string, {
+      controlled: controlled.object,
+      validators: [maxLength(100)],
+    }),
+    flags_suppress_embeds: new Field(converters.boolean, {
+      controlled: controlled.object,
+    }),
+    flags_suppress_notifications: new Field(converters.boolean, {
+      controlled: controlled.object,
+    }),
     reference: new Field(converters.string, {
       controlled: controlled.object,
       validators: [matchesRegex(MESSAGE_REF_RE, "Invalid message link")],

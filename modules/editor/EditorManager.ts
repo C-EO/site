@@ -2,6 +2,8 @@
 
 import { Instance, SnapshotOrInstance, types } from "mobx-state-tree"
 import { delay } from "../../common/state/delay"
+import type { DiscordError } from "../../types/DiscordError"
+import type { MessageData } from "../message/state/data/MessageData"
 import { MessageModel } from "../message/state/models/MessageModel"
 import { WebhookModel } from "../webhook/WebhookModel"
 
@@ -23,7 +25,46 @@ export const EditorManager = types
       self.messages.push(MessageModel.create())
     },
 
+    async getMessage(reference: string) {
+      for (const target of self.targets) {
+        const headers: Record<string, string> = {
+          "Accept": "application/json",
+          "Accept-Language": "en",
+        }
+
+        /* eslint-disable no-await-in-loop */
+
+        const [, url] = await target.getRoute(reference)
+        const response = await fetch(url, { method: "GET", headers })
+        const data = await response.json()
+
+        if (response.headers.get("X-RateLimit-Remaining") === "0") {
+          const retryAfter =
+            Number(response.headers.get("X-RateLimit-Reset-After") ?? 2) * 1000
+
+          console.log(
+            "Rate limited: delaying next request by",
+            retryAfter,
+            "milliseconds",
+          )
+
+          await delay(retryAfter)
+        }
+
+        /* eslint-enable no-await-in-loop */
+
+        console.log("Reference fetched", data)
+
+        if (response.ok) {
+          return data as MessageData
+        }
+      }
+
+      return null
+    },
+
     async save() {
+      const errors: DiscordError[] = []
       for (const target of self.targets) {
         for (const message of self.messages) {
           const headers: Record<string, string> = {
@@ -59,10 +100,17 @@ export const EditorManager = types
 
           /* eslint-enable no-await-in-loop */
 
+          if (!response.ok) {
+            errors.push(data as DiscordError)
+          }
+
           console.log("Target executed", data)
         }
       }
 
+      if (errors.length > 0) {
+        throw new Error(JSON.stringify(errors))
+      }
       return null
     },
 

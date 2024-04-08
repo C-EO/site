@@ -1,7 +1,7 @@
 export const DISCORD_API_BASE_URLS = [
-  "https://discord.com/api/v8",
-  "https://ptb.discord.com/api/v8",
-  "https://canary.discord.com/api/v8",
+  "https://discord.com/api/v10",
+  "https://ptb.discord.com/api/v10",
+  "https://canary.discord.com/api/v10",
 ]
 
 const getDiscordApiHost = async () => {
@@ -33,6 +33,6 @@ export const DEFAULT_AVATAR_URL =
 export const BRANDED_DEFAULT_AVATAR_URL = "/static/discord-avatar.png"
 export const DEFAULT_DISPLAY_NAME = "Discohook"
 
-export const WEBHOOK_URL_RE = /^https?:\/\/(?:www\.|ptb\.|canary\.)?discord(?:app)?\.com\/api(?:\/v\d+)?\/webhooks\/\d+\/[\w-]+$/
+export const WEBHOOK_URL_RE = /^https?:\/\/(?:www\.|ptb\.|canary\.)?discord(?:app)?\.com\/api(?:\/v\d+)?\/webhooks\/\d+\/[\w-]+(?:\?thread_id=\d+)?$/
 
 export const MESSAGE_REF_RE = /^(?:https:\/\/(?:www\.|ptb\.|canary\.)?discord(?:app)?\.com\/channels\/\d+\/\d+\/)?(\d+)$/
